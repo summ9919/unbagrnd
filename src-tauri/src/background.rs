@@ -25,10 +25,10 @@ pub struct ShadowSpec {
 fn parse_hex_color(hex: &str) -> Result<Rgba<u8>, String> {
     let hex = hex.trim_start_matches('#');
     if hex.len() != 6 {
-        return Err(format!("invalid color \"{hex}\" (expected #rrggbb)"));
+        return Err(format!("无效的颜色 \"{hex}\"（应为 #rrggbb 格式）"));
     }
     let byte = |i: usize| -> Result<u8, String> {
-        u8::from_str_radix(&hex[i..i + 2], 16).map_err(|_| format!("invalid color \"{hex}\""))
+        u8::from_str_radix(&hex[i..i + 2], 16).map_err(|_| format!("无效的颜色 \"{hex}\""))
     };
     Ok(Rgba([byte(0)?, byte(2)?, byte(4)?, 255]))
 }

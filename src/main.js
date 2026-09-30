@@ -10,7 +10,7 @@ const { revealItemInDir } = window.__TAURI__.opener;
 const { getVersion } = window.__TAURI__.app;
 
 const IMAGE_FILTERS = [
-  { name: "Images", extensions: ["png", "jpg", "jpeg", "webp", "bmp", "tiff", "tif", "gif"] },
+  { name: "图片", extensions: ["png", "jpg", "jpeg", "webp", "bmp", "tiff", "tif", "gif"] },
 ];
 
 // Models at or above this size get a confirmation dialog before downloading.
@@ -226,7 +226,7 @@ function renderModelBar() {
     const pct = progress.total > 0 ? Math.min(100, (progress.downloaded / progress.total) * 100) : 0;
     modelProgressFill.style.width = `${pct}%`;
     modelProgressLabel.textContent = `${formatBytes(progress.downloaded)} / ${formatBytes(progress.total)}`;
-    modelBadge.textContent = "Downloading…";
+    modelBadge.textContent = "下载中…";
     modelBadge.className = "model-badge badge-warn";
     return;
   }
@@ -234,11 +234,11 @@ function renderModelBar() {
   modelDownloadProgress.hidden = true;
   if (info.downloaded) {
     modelDownloadBtn.hidden = true;
-    modelBadge.textContent = "Ready";
+    modelBadge.textContent = "就绪";
     modelBadge.className = "model-badge badge-ready";
   } else {
     modelDownloadBtn.hidden = false;
-    modelBadge.textContent = `Not downloaded (${formatBytes(info.sizeBytes)})`;
+    modelBadge.textContent = `未下载（${formatBytes(info.sizeBytes)}）`;
     modelBadge.className = "model-badge badge-warn";
   }
 }
@@ -260,7 +260,7 @@ function renderSettingsModelList() {
     if (isSelected) {
       const badge = document.createElement("span");
       badge.className = "model-current-badge";
-      badge.textContent = "Current";
+      badge.textContent = "当前";
       nameEl.appendChild(badge);
     }
     info.appendChild(nameEl);
@@ -272,7 +272,7 @@ function renderSettingsModelList() {
 
     const metaEl = document.createElement("div");
     metaEl.className = "settings-model-meta";
-    metaEl.textContent = `${formatBytes(m.sizeBytes)}${m.downloaded ? " · Downloaded" : ""}`;
+    metaEl.textContent = `${formatBytes(m.sizeBytes)}${m.downloaded ? " · 已下载" : ""}`;
     info.appendChild(metaEl);
 
     li.appendChild(info);
@@ -299,7 +299,7 @@ function renderSettingsModelList() {
         const useBtn = document.createElement("button");
         useBtn.className = "btn btn-secondary btn-sm";
         useBtn.type = "button";
-        useBtn.textContent = "Use";
+        useBtn.textContent = "使用";
         useBtn.addEventListener("click", () => selectModel(m.key));
         actions.appendChild(useBtn);
       }
@@ -307,10 +307,10 @@ function renderSettingsModelList() {
         const clearBtn = document.createElement("button");
         clearBtn.className = "btn btn-link";
         clearBtn.type = "button";
-        clearBtn.textContent = "Clear";
+        clearBtn.textContent = "清除";
         if (isSelected) {
           clearBtn.disabled = true;
-          clearBtn.title = "Can't clear the model currently in use";
+          clearBtn.title = "无法清除正在使用的模型";
         }
         clearBtn.addEventListener("click", () => clearOneModel(m.key));
         actions.appendChild(clearBtn);
@@ -318,7 +318,7 @@ function renderSettingsModelList() {
         const dlBtn = document.createElement("button");
         dlBtn.className = "btn btn-primary btn-sm";
         dlBtn.type = "button";
-        dlBtn.textContent = "Download";
+        dlBtn.textContent = "下载";
         dlBtn.addEventListener("click", () => downloadOneModel(m.key));
         actions.appendChild(dlBtn);
       }
@@ -358,11 +358,11 @@ async function ensureModelReady(key) {
   if (info?.downloaded) return info;
   if (info && info.sizeBytes >= LARGE_MODEL_THRESHOLD) {
     const proceed = await ask(
-      `"${info.displayName}" is ${formatBytes(info.sizeBytes)}. Download it now? ` +
-        "This happens once — it's cached on your device afterward.",
-      { title: "Download model", kind: "info" },
+      `“${info.displayName}”大小为 ${formatBytes(info.sizeBytes)}，是否立即下载？` +
+        "只需下载一次，之后会缓存在本机。",
+      { title: "下载模型", kind: "info" },
     );
-    if (!proceed) throw new Error("Download cancelled.");
+    if (!proceed) throw new Error("已取消下载。");
   }
   return downloadModelWithProgress(key);
 }
@@ -381,11 +381,11 @@ async function selectModel(key) {
     populateModelSelect();
     renderModelBar();
     renderSettingsModelList();
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
     return;
   }
   await refreshModelsList();
-  setStatus("Ready.");
+  setStatus("就绪。");
 }
 
 async function downloadOneModel(key) {
@@ -393,7 +393,7 @@ async function downloadOneModel(key) {
     await ensureModelReady(key);
     await refreshModelsList();
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   }
 }
 
@@ -402,7 +402,7 @@ async function clearOneModel(key) {
     await invoke("clear_model", { key });
     await refreshModelsList();
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   }
 }
 
@@ -414,24 +414,24 @@ modelDownloadBtn.addEventListener("click", async () => {
   try {
     await ensureModelReady(selectedModelKey);
     await refreshModelsList();
-    setStatus("Ready.");
+    setStatus("就绪。");
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   }
 });
 
 clearAllModelsBtn.addEventListener("click", async () => {
   const proceed = await ask(
-    "Remove all downloaded models from disk? You'll need to re-download them next time you use them.",
-    { title: "Clear all models", kind: "warning" },
+    "要从磁盘中删除全部已下载的模型吗？下次使用这些模型时需要重新下载。",
+    { title: "清除全部模型", kind: "warning" },
   );
   if (!proceed) return;
   try {
     await invoke("clear_all_models");
     await refreshModelsList();
-    setStatus("Cleared all cached models.");
+    setStatus("已清除全部缓存模型。");
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   }
 });
 
@@ -466,7 +466,7 @@ themeSelect.addEventListener("change", async () => {
   try {
     await invoke("set_theme", { theme });
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   }
 });
 
@@ -478,7 +478,7 @@ exportFormatSelect.addEventListener("change", async () => {
   } catch (err) {
     exportFormat = previous;
     exportFormatSelect.value = previous;
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   }
 });
 
@@ -505,8 +505,8 @@ tabBatch.addEventListener("click", () => activateTab("batch"));
 
 function refreshOutputDirDisplay() {
   outputDirDisplay.textContent = IS_ANDROID
-    ? "Saved next to the source photo, and to your Gallery"
-    : (outputDir ?? "Same folder as the original image");
+    ? "保存到源照片所在文件夹，并同步到系统相册"
+    : (outputDir ?? "与原图相同的文件夹");
   clearOutputDirBtn.hidden = outputDir === null;
 }
 
@@ -590,15 +590,15 @@ async function processSingle(path) {
   setBusy(true);
   singleDropzone.hidden = true;
   singleResult.hidden = true;
-  singleLoadingText.textContent = "Preparing…";
+  singleLoadingText.textContent = "准备中…";
   singleLoading.hidden = false;
   const progress = startFakeProgress(singleProgressFill, singleProgressLabel);
   try {
-    setStatus("Preparing…");
+    setStatus("准备中…");
     await ensureModelReady(selectedModelKey);
 
-    setStatus("Removing background…");
-    singleLoadingText.textContent = "Removing background…";
+    setStatus("正在移除背景…");
+    singleLoadingText.textContent = "正在移除背景…";
     const result = await invoke("remove_background_single", {
       inputPath: path,
       outputDir,
@@ -617,12 +617,12 @@ async function processSingle(path) {
     singleLoading.hidden = true;
     singleDropzone.hidden = true;
     singleResult.hidden = false;
-    setStatus("Done.");
+    setStatus("完成。");
   } catch (err) {
     progress.stop();
     singleLoading.hidden = true;
     singleDropzone.hidden = false;
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     setBusy(false);
   }
@@ -667,7 +667,7 @@ function buildBasicSwatchRow() {
   const transparentBtn = document.createElement("button");
   transparentBtn.type = "button";
   transparentBtn.className = "swatch transparent-swatch";
-  transparentBtn.title = "Transparent";
+  transparentBtn.title = "透明";
   transparentBtn.addEventListener("click", () => selectBackgroundSwatch(null, transparentBtn));
   bgSwatchesBasic.appendChild(transparentBtn);
 
@@ -684,7 +684,7 @@ function buildBasicSwatchRow() {
   const customInput = document.createElement("input");
   customInput.type = "color";
   customInput.className = "swatch custom-swatch";
-  customInput.title = "Custom color";
+  customInput.title = "自定义颜色";
   customInput.value = "#8855ee";
   customInput.addEventListener("input", () => selectBackgroundSwatch(customInput.value, customInput));
   bgSwatchesBasic.appendChild(customInput);
@@ -785,7 +785,7 @@ async function updateBgPreview() {
     if (requestId !== bgPreviewRequestId) return; // superseded by a newer request
     bgEditorPreview.src = dataUrl;
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     // Only the most recent request gets to clear the loading state — an
     // older, superseded request finishing later must not hide it while a
@@ -876,16 +876,16 @@ bgEditorDownloadBtn.addEventListener("click", async () => {
   if (busy) return;
   setBusy(true);
   try {
-    setStatus("Saving…");
+    setStatus("正在保存…");
     const outputPath = await invoke("export_background", {
       outputDir,
       backgroundHex: bgBackgroundHex,
       shadow: currentShadowSpecOrNull(),
       exportFormat,
     });
-    setStatus(`Saved to ${outputPath}`);
+    setStatus(`已保存到 ${outputPath}`);
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     setBusy(false);
   }
@@ -1023,7 +1023,7 @@ async function updateRefinePreview() {
     refineBaseImg = await loadImage(dataUrl);
     redrawRefineCanvasBase();
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     if (requestId === refinePreviewRequestId) refineLoading.hidden = true;
   }
@@ -1038,8 +1038,8 @@ refineModeRow.addEventListener("click", (event) => {
   }
   refineModeHint.textContent =
     refineMode === "erase"
-      ? "Paint over parts of the subject you want to remove."
-      : "Paint over parts of the subject you want to bring back.";
+      ? "涂抹想要移除的主体部分。"
+      : "涂抹想要恢复的主体部分。";
   refineRestoreToGroup.hidden = refineMode !== "restore";
 });
 
@@ -1088,9 +1088,9 @@ refineApplyBtn.addEventListener("click", async () => {
     previewAfter.src = dataUrl;
     updateRefineStrokeButtons();
     updateRefineUndoRedoButtons();
-    setStatus("Applied.");
+    setStatus("已应用。");
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     refineLoading.hidden = true;
     refineLocked = false;
@@ -1112,7 +1112,7 @@ refineUndoBtn.addEventListener("click", async () => {
     previewAfter.src = dataUrl;
     updateRefineUndoRedoButtons();
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     refineLoading.hidden = true;
     refineLocked = false;
@@ -1134,7 +1134,7 @@ refineRedoBtn.addEventListener("click", async () => {
     previewAfter.src = dataUrl;
     updateRefineUndoRedoButtons();
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     refineLoading.hidden = true;
     refineLocked = false;
@@ -1150,11 +1150,11 @@ refineDownloadBtn.addEventListener("click", async () => {
   if (busy) return;
   setBusy(true);
   try {
-    setStatus("Saving…");
+    setStatus("正在保存…");
     const outputPath = await invoke("export_refine", { outputDir, exportFormat });
-    setStatus(`Saved to ${outputPath}`);
+    setStatus(`已保存到 ${outputPath}`);
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     setBusy(false);
   }
@@ -1171,7 +1171,7 @@ singleRefineBtn.addEventListener("click", async () => {
 
   refineBrushSizeInput.value = "10";
   refineBrushSizeLabel.textContent = "10%";
-  refineModeHint.textContent = "Paint over parts of the subject you want to remove.";
+  refineModeHint.textContent = "涂抹想要移除的主体部分。";
   refineRestoreToGroup.hidden = true;
   for (const el of refineModeRow.querySelectorAll(".bg-shadow-preset")) {
     el.classList.toggle("active", el.dataset.mode === "erase");
@@ -1204,7 +1204,7 @@ singleRefineBtn.addEventListener("click", async () => {
     refineCanvas.height = baseImg.naturalHeight;
     redrawRefineCanvasBase();
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
     refineOverlay.hidden = true;
   } finally {
     refineLoading.hidden = true;
@@ -1258,7 +1258,7 @@ function renderBatchRow(fileName) {
   nameEl.textContent = fileName;
   const statusEl = document.createElement("span");
   statusEl.className = "file-status pending";
-  statusEl.textContent = "Waiting…";
+  statusEl.textContent = "等待中…";
   li.append(thumbEl, nameEl, statusEl);
   batchFileList.appendChild(li);
   return { thumbEl, statusEl };
@@ -1308,7 +1308,7 @@ async function processBatch(paths) {
 
     thumbEl.dataset.settled = "1";
     if (status === "done") {
-      statusEl.textContent = "Done";
+      statusEl.textContent = "完成";
       statusEl.className = "file-status done";
       lastBatchOutputDir = parentDir(outputPath);
       thumbEl.innerHTML = "";
@@ -1318,7 +1318,7 @@ async function processBatch(paths) {
       img.alt = "";
       thumbEl.appendChild(img);
     } else {
-      statusEl.textContent = message ?? "Failed";
+      statusEl.textContent = message ?? "失败";
       statusEl.className = "file-status error";
       statusEl.title = message ?? "";
       thumbEl.innerHTML = '<span class="file-thumb-error">!</span>';
@@ -1331,7 +1331,7 @@ async function processBatch(paths) {
   });
 
   try {
-    setStatus("Preparing…");
+    setStatus("准备中…");
     const expandedPaths = await invoke("expand_batch_paths", { paths });
     for (const [index, filePath] of expandedPaths.entries()) {
       const fileName = filePath.split(/[/\\]/).pop() ?? filePath;
@@ -1343,16 +1343,16 @@ async function processBatch(paths) {
 
     await ensureModelReady(selectedModelKey);
 
-    setStatus("Removing backgrounds…");
+    setStatus("正在批量移除背景…");
     await invoke("remove_background_batch", {
       inputPaths: expandedPaths,
       outputDir,
       modelKey: selectedModelKey,
       exportFormat,
     });
-    setStatus("Batch complete.");
+    setStatus("批量处理完成。");
   } catch (err) {
-    setStatus(`Failed: ${err}`);
+    setStatus(`失败：${err}`);
   } finally {
     unlisten();
     setBusy(false);
@@ -1470,9 +1470,9 @@ async function init() {
     exportFormatSelect.value = settings.exportFormat;
     populateModelSelect();
     renderModelBar();
-    setStatus("Ready.");
+    setStatus("就绪。");
   } catch (err) {
-    setStatus(`Could not load models: ${err}`);
+    setStatus(`无法加载模型列表：${err}`);
   }
 }
 

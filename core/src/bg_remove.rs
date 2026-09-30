@@ -51,13 +51,13 @@ fn build_session(model_path: &Path) -> Result<Session, String> {
         .unwrap_or(4);
 
     Session::builder()
-        .map_err(|e| format!("failed to initialize the inference session: {e}"))?
+        .map_err(|e| format!("无法初始化推理会话：{e}"))?
         .with_optimization_level(GraphOptimizationLevel::Level3)
-        .map_err(|e| format!("failed to configure the inference session: {e}"))?
+        .map_err(|e| format!("无法配置推理会话：{e}"))?
         .with_intra_threads(threads)
-        .map_err(|e| format!("failed to configure the inference session: {e}"))?
+        .map_err(|e| format!("无法配置推理会话：{e}"))?
         .commit_from_file(model_path)
-        .map_err(|e| format!("failed to load the model: {e}"))
+        .map_err(|e| format!("无法加载模型：{e}"))
 }
 
 /// Removes the background from an already-decoded image using the given
@@ -71,14 +71,14 @@ pub fn remove_background(
 ) -> Result<RgbaImage, String> {
     let (orig_w, orig_h) = (original.width(), original.height());
     if orig_w == 0 || orig_h == 0 {
-        return Err("image has zero width or height".to_string());
+        return Err("图片宽度或高度为零".to_string());
     }
 
     let mask_native = {
         let mut sessions = state
             .0
             .lock()
-            .map_err(|_| "inference session lock was poisoned".to_string())?;
+            .map_err(|_| "推理会话锁已失效".to_string())?;
         if !sessions.contains_key(spec.key) {
             sessions.insert(spec.key.to_string(), build_session(model_path)?);
         }
@@ -132,14 +132,14 @@ fn run_inference(
     }
 
     let input_tensor =
-        TensorRef::from_array_view(&input).map_err(|e| format!("failed to prepare input: {e}"))?;
+        TensorRef::from_array_view(&input).map_err(|e| format!("无法准备输入数据：{e}"))?;
     let outputs = session
         .run(ort::inputs![input_tensor])
-        .map_err(|e| format!("inference failed: {e}"))?;
+        .map_err(|e| format!("推理失败：{e}"))?;
 
     let mask = outputs[0]
         .try_extract_array::<f32>()
-        .map_err(|e| format!("failed to read model output: {e}"))?;
+        .map_err(|e| format!("无法读取模型输出：{e}"))?;
 
     match spec.output_mode {
         OutputMode::Alpha => {
@@ -167,7 +167,7 @@ fn run_inference(
                 .collect();
 
             ImageBuffer::from_raw(size, size, mask_bytes)
-                .ok_or_else(|| "unexpected model output size".to_string())
+                .ok_or_else(|| "模型输出尺寸异常".to_string())
         }
         OutputMode::ClothSegAnyForeground => {
             // Output shape is (1, num_classes, H, W): a per-pixel class
@@ -175,7 +175,7 @@ fn run_inference(
             // Anything the model doesn't classify as background is kept.
             let arr = mask
                 .into_dimensionality::<ndarray::Ix4>()
-                .map_err(|e| format!("unexpected model output shape: {e}"))?;
+                .map_err(|e| format!("模型输出形状异常：{e}"))?;
             let (_, num_classes, h, w) = arr.dim();
 
             let mut mask_bytes = vec![0u8; h * w];
@@ -195,7 +195,7 @@ fn run_inference(
             }
 
             ImageBuffer::from_raw(w as u32, h as u32, mask_bytes)
-                .ok_or_else(|| "unexpected model output size".to_string())
+                .ok_or_else(|| "模型输出尺寸异常".to_string())
         }
     }
 }

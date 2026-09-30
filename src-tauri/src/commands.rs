@@ -67,10 +67,10 @@ fn last_session(app: &AppHandle) -> Result<ResultSession, String> {
     let guard = state
         .0
         .lock()
-        .map_err(|_| "result state lock was poisoned".to_string())?;
+        .map_err(|_| "结果状态锁已失效".to_string())?;
     guard
         .clone()
-        .ok_or_else(|| "no processed image to edit yet".to_string())
+        .ok_or_else(|| "暂无可编辑的已处理图片".to_string())
 }
 
 /// Runs `f` against the live session under its lock, for callers that need
@@ -83,10 +83,10 @@ fn with_last_session<T>(
     let mut guard = state
         .0
         .lock()
-        .map_err(|_| "result state lock was poisoned".to_string())?;
+        .map_err(|_| "结果状态锁已失效".to_string())?;
     let session = guard
         .as_mut()
-        .ok_or_else(|| "no processed image to edit yet".to_string())?;
+        .ok_or_else(|| "暂无可编辑的已处理图片".to_string())?;
     f(session)
 }
 
@@ -137,7 +137,7 @@ fn resolve_model(app: &AppHandle, model_key: Option<&str>) -> Result<&'static Mo
         Some(key) => key.to_string(),
         None => settings::load_settings(app)?.selected_model,
     };
-    models::find_model(&key).ok_or_else(|| format!("unknown model \"{key}\""))
+    models::find_model(&key).ok_or_else(|| format!("未知模型 \"{key}\""))
 }
 
 /// Resolves an export format from the frontend (which may omit it, meaning
@@ -149,7 +149,7 @@ fn resolve_export_format(app: &AppHandle, export_format: Option<&str>) -> Result
     };
     if !settings::EXPORT_FORMATS.contains(&format.as_str()) {
         return Err(format!(
-            "unknown export format \"{format}\" (expected one of {:?})",
+            "未知导出格式 \"{format}\"（应为以下之一：{:?}）",
             settings::EXPORT_FORMATS
         ));
     }
@@ -191,17 +191,17 @@ pub async fn clear_all_models(app: AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn download_model(app: AppHandle, key: String) -> Result<ModelInfo, String> {
-    let spec = models::find_model(&key).ok_or_else(|| format!("unknown model \"{key}\""))?;
+    let spec = models::find_model(&key).ok_or_else(|| format!("未知模型 \"{key}\""))?;
     models::ensure_model(&app, spec).await?;
     models::list_models(&app)?
         .into_iter()
         .find(|m| m.key == spec.key)
-        .ok_or_else(|| "model disappeared after download".to_string())
+        .ok_or_else(|| "下载后模型文件已消失".to_string())
 }
 
 #[tauri::command]
 pub async fn clear_model(app: AppHandle, key: String) -> Result<(), String> {
-    let spec = models::find_model(&key).ok_or_else(|| format!("unknown model \"{key}\""))?;
+    let spec = models::find_model(&key).ok_or_else(|| format!("未知模型 \"{key}\""))?;
     models::clear_model(&app, spec).await
 }
 
@@ -238,7 +238,7 @@ pub async fn remove_background_single(
             let mut guard = result_state
                 .0
                 .lock()
-                .map_err(|_| "result state lock was poisoned".to_string())?;
+                .map_err(|_| "结果状态锁已失效".to_string())?;
             *guard = Some(ResultSession {
                 input_path: input_path_buf.clone(),
                 original: original.to_rgba8(),
@@ -258,7 +258,7 @@ pub async fn remove_background_single(
         })
     })
     .await
-    .map_err(|e| format!("background task failed: {e}"))?
+    .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// Expands any directories in `paths` into their individual image files
@@ -280,7 +280,7 @@ pub async fn preview_image(app: AppHandle, path: String) -> Result<String, Strin
         to_data_url_sized(&original, BATCH_THUMB_MAX_DIM)
     })
     .await
-    .map_err(|e| format!("background task failed: {e}"))?
+    .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// Recomposites the most recent single-image background-removal result
@@ -303,7 +303,7 @@ pub async fn preview_background(
         to_data_url(&DynamicImage::ImageRgba8(composited))
     })
     .await
-    .map_err(|e| format!("background task failed: {e}"))?
+    .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// Recomposites the most recent single-image background-removal result at
@@ -330,7 +330,7 @@ pub async fn export_background(
         Ok(output_path.display().to_string())
     })
     .await
-    .map_err(|e| format!("background task failed: {e}"))?
+    .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// Picks the "restore to" target the refine panel's `restore_to` string
@@ -368,7 +368,7 @@ pub async fn preview_refine(
         to_data_url(&DynamicImage::ImageRgba8(result))
     })
     .await
-    .map_err(|e| format!("background task failed: {e}"))?
+    .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// Commits `strokes` at full resolution: applies them to the working
@@ -387,7 +387,7 @@ pub async fn apply_refine(
         refine::apply_strokes(&session.current, &source, &strokes, &mode)
     })
     .await
-    .map_err(|e| format!("background task failed: {e}"))?;
+    .map_err(|e| format!("后台任务失败：{e}"))?;
 
     let preview = with_last_session(&app, |session| {
         session.undo_stack.push(session.current.clone());
@@ -400,7 +400,7 @@ pub async fn apply_refine(
     })?;
     tauri::async_runtime::spawn_blocking(move || to_data_url(&DynamicImage::ImageRgba8(preview)))
         .await
-        .map_err(|e| format!("background task failed: {e}"))?
+        .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// Steps the working image one entry back in its undo history (there is
@@ -410,14 +410,14 @@ pub async fn apply_refine(
 #[tauri::command]
 pub async fn undo_refine(app: AppHandle) -> Result<String, String> {
     let preview = with_last_session(&app, |session| {
-        let previous = session.undo_stack.pop().ok_or_else(|| "nothing to undo".to_string())?;
+        let previous = session.undo_stack.pop().ok_or_else(|| "没有可撤销的操作".to_string())?;
         session.redo_stack.push(session.current.clone());
         session.current = previous;
         Ok(session.current.clone())
     })?;
     tauri::async_runtime::spawn_blocking(move || to_data_url(&DynamicImage::ImageRgba8(preview)))
         .await
-        .map_err(|e| format!("background task failed: {e}"))?
+        .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// The inverse of [`undo_refine`]: re-applies the most recently undone
@@ -425,14 +425,14 @@ pub async fn undo_refine(app: AppHandle) -> Result<String, String> {
 #[tauri::command]
 pub async fn redo_refine(app: AppHandle) -> Result<String, String> {
     let preview = with_last_session(&app, |session| {
-        let next = session.redo_stack.pop().ok_or_else(|| "nothing to redo".to_string())?;
+        let next = session.redo_stack.pop().ok_or_else(|| "没有可重做的操作".to_string())?;
         session.undo_stack.push(session.current.clone());
         session.current = next;
         Ok(session.current.clone())
     })?;
     tauri::async_runtime::spawn_blocking(move || to_data_url(&DynamicImage::ImageRgba8(preview)))
         .await
-        .map_err(|e| format!("background task failed: {e}"))?
+        .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// Writes the working image (any committed refine edits, with no
@@ -455,7 +455,7 @@ pub async fn export_refine(
         Ok(output_path.display().to_string())
     })
     .await
-    .map_err(|e| format!("background task failed: {e}"))?
+    .map_err(|e| format!("后台任务失败：{e}"))?
 }
 
 /// Opens the most recently exported image in the system photo viewer.
@@ -474,7 +474,7 @@ pub async fn reveal_last_export_in_gallery(app: AppHandle) -> Result<(), String>
     #[cfg(not(target_os = "android"))]
     {
         let _ = app;
-        Err("not supported on this platform".to_string())
+        Err("当前平台不支持此操作".to_string())
     }
 }
 
@@ -531,7 +531,7 @@ pub async fn remove_background_batch(
                 },
             )
             .await
-            .map_err(|e| format!("background task failed: {e}"));
+            .map_err(|e| format!("后台任务失败：{e}"));
 
             match outcome {
                 Ok(Ok((output_path, after_data_url))) => BatchFileResult::Done {
@@ -573,11 +573,11 @@ fn expand_paths(paths: &[String]) -> Result<Vec<String>, String> {
         let path = Path::new(raw_path);
         let metadata = path
             .metadata()
-            .map_err(|e| format!("could not access {}: {e}", path.display()))?;
+            .map_err(|e| format!("无法访问 {}：{e}", path.display()))?;
 
         if metadata.is_dir() {
             let mut entries: Vec<PathBuf> = std::fs::read_dir(path)
-                .map_err(|e| format!("could not read folder {}: {e}", path.display()))?
+                .map_err(|e| format!("无法读取文件夹 {}：{e}", path.display()))?
                 .filter_map(|entry| entry.ok())
                 .map(|entry| entry.path())
                 .filter(|p| {
@@ -612,7 +612,7 @@ fn output_path_for(
 ) -> Result<PathBuf, String> {
     let stem = input_path
         .file_stem()
-        .ok_or_else(|| format!("invalid input path: {}", input_path.display()))?
+        .ok_or_else(|| format!("无效的输入路径：{}", input_path.display()))?
         .to_string_lossy();
     let file_name = format!("{stem}{suffix}.{format}");
 
@@ -632,10 +632,10 @@ fn output_path_for(
                 let dir = app
                     .path()
                     .app_data_dir()
-                    .map_err(|e| format!("could not resolve a save directory: {e}"))?
+                    .map_err(|e| format!("无法确定保存目录：{e}"))?
                     .join("exports");
                 std::fs::create_dir_all(&dir)
-                    .map_err(|e| format!("could not create the exports directory: {e}"))?;
+                    .map_err(|e| format!("无法创建导出目录：{e}"))?;
                 dir
             }
         },
@@ -657,7 +657,7 @@ fn open_image(app: &AppHandle, raw_path: &str) -> Result<DynamicImage, String> {
     let bytes = app
         .fs()
         .read(file_path)
-        .map_err(|e| format!("could not read image: {e}"))?;
+        .map_err(|e| format!("无法读取图片：{e}"))?;
     decode_image_bytes(&bytes)
 }
 
@@ -667,7 +667,7 @@ fn open_image(app: &AppHandle, raw_path: &str) -> Result<DynamicImage, String> {
 /// `image::open`'s extension-based guess fails outright on those with a
 /// confusing decoder error instead of just reading the file.
 fn decode_image_bytes(bytes: &[u8]) -> Result<DynamicImage, String> {
-    image::load_from_memory(bytes).map_err(|e| format!("could not read image: {e}"))
+    image::load_from_memory(bytes).map_err(|e| format!("无法读取图片：{e}"))
 }
 
 /// Writes the background-removed image to `path` in `format` (one of
@@ -688,7 +688,7 @@ fn write_output(image: &RgbaImage, path: &Path, format: &str) -> Result<(), Stri
             let mut png_bytes: Vec<u8> = Vec::new();
             image
                 .write_to(&mut std::io::Cursor::new(&mut png_bytes), ImageFormat::Png)
-                .map_err(|e| format!("could not encode output image: {e}"))?;
+                .map_err(|e| format!("无法编码输出图片：{e}"))?;
             let encoded = base64::engine::general_purpose::STANDARD.encode(png_bytes);
             let (width, height) = (image.width(), image.height());
             let svg = format!(
@@ -699,14 +699,14 @@ fn write_output(image: &RgbaImage, path: &Path, format: &str) -> Result<(), Stri
                  href=\"data:image/png;base64,{encoded}\"/>\n\
                  </svg>\n"
             );
-            std::fs::write(path, svg).map_err(|e| format!("could not write output image: {e}"))
+            std::fs::write(path, svg).map_err(|e| format!("无法写入输出图片：{e}"))
         }
         "webp" => image
             .save_with_format(path, ImageFormat::WebP)
-            .map_err(|e| format!("could not write output image: {e}")),
+            .map_err(|e| format!("无法写入输出图片：{e}")),
         _ => image
             .save_with_format(path, ImageFormat::Png)
-            .map_err(|e| format!("could not write output image: {e}")),
+            .map_err(|e| format!("无法写入输出图片：{e}")),
     }
 }
 
@@ -733,10 +733,10 @@ fn publish_to_gallery(app: &AppHandle, path: &Path, format: &str) {
     match std::fs::read(path) {
         Ok(bytes) => {
             if let Err(e) = crate::android_gallery::publish(app, display_name, mime_type, &bytes) {
-                eprintln!("could not publish exported image to the gallery: {e}");
+                eprintln!("无法将导出的图片发布到相册：{e}");
             }
         }
-        Err(e) => eprintln!("could not read exported image back for the gallery: {e}"),
+        Err(e) => eprintln!("无法读回导出的图片以发布到相册：{e}"),
     }
 }
 
@@ -757,7 +757,7 @@ fn to_data_url_sized(img: &DynamicImage, max_dim: u32) -> Result<String, String>
     let mut bytes: Vec<u8> = Vec::new();
     preview
         .write_to(&mut std::io::Cursor::new(&mut bytes), ImageFormat::Png)
-        .map_err(|e| format!("could not encode preview image: {e}"))?;
+        .map_err(|e| format!("无法编码预览图片：{e}"))?;
 
     let encoded = base64::engine::general_purpose::STANDARD.encode(bytes);
     Ok(format!("data:image/png;base64,{encoded}"))

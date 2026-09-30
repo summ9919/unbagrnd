@@ -95,7 +95,7 @@ pub const MODELS: &[ModelSpec] = &[
     ModelSpec {
         key: "silueta",
         display_name: "Silueta",
-        description: "Default — fastest, smallest download, general use",
+        description: "默认 — 下载最快、体积最小，适合通用场景",
         file_name: "silueta.onnx",
         url: "https://github.com/developersharif/bgremover-app/releases/download/silueta/silueta.onnx",
         size_bytes: 44_173_029,
@@ -109,7 +109,7 @@ pub const MODELS: &[ModelSpec] = &[
     ModelSpec {
         key: "u2net",
         display_name: "U2-Net",
-        description: "General use, higher accuracy than Silueta",
+        description: "通用场景，精度高于 Silueta",
         file_name: "u2net.onnx",
         url: "https://github.com/developersharif/bgremover-app/releases/download/u2net/u2net.onnx",
         size_bytes: 175_997_641,
@@ -122,8 +122,8 @@ pub const MODELS: &[ModelSpec] = &[
     },
     ModelSpec {
         key: "birefnet-general-lite",
-        display_name: "BiRefNet (General, Lite)",
-        description: "General use, newer architecture, cleaner edges and hair detail",
+        display_name: "BiRefNet（通用·轻量）",
+        description: "通用场景，架构更新，边缘与发丝细节更干净",
         file_name: "BiRefNet-general-bb_swin_v1_tiny-epoch_232.onnx",
         url: "https://github.com/developersharif/bgremover-app/releases/download/birefnet-general-lite/BiRefNet-general-bb_swin_v1_tiny-epoch_232.onnx",
         size_bytes: 224_005_088,
@@ -136,8 +136,8 @@ pub const MODELS: &[ModelSpec] = &[
     },
     ModelSpec {
         key: "u2net_human_seg",
-        display_name: "U2-Net (Human)",
-        description: "Portraits and people",
+        display_name: "U2-Net（人像）",
+        description: "人像与人物",
         file_name: "u2net_human_seg.onnx",
         url: "https://github.com/developersharif/bgremover-app/releases/download/u2net_human_seg/u2net_human_seg.onnx",
         size_bytes: 175_997_641,
@@ -150,8 +150,8 @@ pub const MODELS: &[ModelSpec] = &[
     },
     ModelSpec {
         key: "u2net_cloth_seg",
-        display_name: "U2-Net (Cloth)",
-        description: "Clothing / garment parsing (keeps all detected garment regions)",
+        display_name: "U2-Net（服装）",
+        description: "服装 / 衣物分割（保留所有检测到的衣物区域）",
         file_name: "u2net_cloth_seg.onnx",
         url: "https://github.com/developersharif/bgremover-app/releases/download/u2net_cloth_seg/u2net_cloth_seg.onnx",
         size_bytes: 176_194_565,
@@ -164,8 +164,8 @@ pub const MODELS: &[ModelSpec] = &[
     },
     ModelSpec {
         key: "isnet-anime",
-        display_name: "IS-Net (Anime)",
-        description: "Anime and illustration characters",
+        display_name: "IS-Net（动漫）",
+        description: "动漫与插画角色",
         file_name: "isnet-anime.onnx",
         url: "https://github.com/developersharif/bgremover-app/releases/download/isnet-anime/isnet-anime.onnx",
         size_bytes: 176_069_933,
@@ -246,7 +246,7 @@ pub async fn ensure_model(
 
     tokio::fs::create_dir_all(models_dir)
         .await
-        .map_err(|e| format!("could not create the models directory: {e}"))?;
+        .map_err(|e| format!("无法创建模型目录：{e}"))?;
 
     let tmp_path = models_dir.join(format!("{}.part", spec.file_name));
 
@@ -254,10 +254,10 @@ pub async fn ensure_model(
         .get(spec.url)
         .send()
         .await
-        .map_err(|e| format!("model download failed: {e}"))?;
+        .map_err(|e| format!("模型下载失败：{e}"))?;
     if !response.status().is_success() {
         return Err(format!(
-            "model download failed: server returned HTTP {}",
+            "模型下载失败：服务器返回 HTTP {}",
             response.status()
         ));
     }
@@ -265,7 +265,7 @@ pub async fn ensure_model(
 
     let mut file = tokio::fs::File::create(&tmp_path)
         .await
-        .map_err(|e| format!("could not create the model file: {e}"))?;
+        .map_err(|e| format!("无法创建模型文件：{e}"))?;
 
     let mut hasher = Sha256::new();
     let mut downloaded_bytes: u64 = 0;
@@ -273,11 +273,11 @@ pub async fn ensure_model(
     let mut last_emit = std::time::Instant::now();
 
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|e| format!("model download failed: {e}"))?;
+        let chunk = chunk.map_err(|e| format!("模型下载失败：{e}"))?;
         hasher.update(&chunk);
         file.write_all(&chunk)
             .await
-            .map_err(|e| format!("could not write the model file: {e}"))?;
+            .map_err(|e| format!("无法写入模型文件：{e}"))?;
         downloaded_bytes += chunk.len() as u64;
 
         if last_emit.elapsed().as_millis() >= 100 || downloaded_bytes == total_bytes {
@@ -291,7 +291,7 @@ pub async fn ensure_model(
     }
     file.flush()
         .await
-        .map_err(|e| format!("could not write the model file: {e}"))?;
+        .map_err(|e| format!("无法写入模型文件：{e}"))?;
     drop(file);
 
     let digest = hex::encode(hasher.finalize());
@@ -306,7 +306,7 @@ pub async fn ensure_model(
 
     tokio::fs::rename(&tmp_path, &final_path)
         .await
-        .map_err(|e| format!("could not finalize the model file: {e}"))?;
+        .map_err(|e| format!("无法完成模型文件的保存：{e}"))?;
 
     Ok(final_path)
 }
@@ -317,7 +317,7 @@ pub async fn clear_model(models_dir: &Path, spec: &ModelSpec) -> Result<(), Stri
     if path.exists() {
         tokio::fs::remove_file(&path)
             .await
-            .map_err(|e| format!("could not remove cached model: {e}"))?;
+            .map_err(|e| format!("无法删除已缓存的模型：{e}"))?;
     }
     Ok(())
 }

@@ -42,7 +42,7 @@ fn settings_path(app: &AppHandle) -> Result<PathBuf, String> {
     let dir = app
         .path()
         .app_data_dir()
-        .map_err(|e| format!("could not resolve the app data directory: {e}"))?;
+        .map_err(|e| format!("无法确定应用数据目录：{e}"))?;
     Ok(dir.join("settings.json"))
 }
 
@@ -73,19 +73,19 @@ async fn save(app: &AppHandle, settings: &Settings) -> Result<(), String> {
     if let Some(dir) = path.parent() {
         tokio::fs::create_dir_all(dir)
             .await
-            .map_err(|e| format!("could not create the app data directory: {e}"))?;
+            .map_err(|e| format!("无法创建应用数据目录：{e}"))?;
     }
     let bytes = serde_json::to_vec_pretty(settings)
-        .map_err(|e| format!("could not serialize settings: {e}"))?;
+        .map_err(|e| format!("无法序列化设置：{e}"))?;
     tokio::fs::write(&path, bytes)
         .await
-        .map_err(|e| format!("could not write settings: {e}"))?;
+        .map_err(|e| format!("无法写入设置：{e}"))?;
     Ok(())
 }
 
 pub async fn set_selected_model(app: &AppHandle, key: &str) -> Result<Settings, String> {
     if models::find_model(key).is_none() {
-        return Err(format!("unknown model \"{key}\""));
+        return Err(format!("未知模型 \"{key}\""));
     }
     let mut settings = load_settings(app)?;
     settings.selected_model = key.to_string();
@@ -96,7 +96,7 @@ pub async fn set_selected_model(app: &AppHandle, key: &str) -> Result<Settings, 
 pub async fn set_theme(app: &AppHandle, theme: &str) -> Result<Settings, String> {
     if !["system", "light", "dark"].contains(&theme) {
         return Err(format!(
-            "unknown theme \"{theme}\" (expected system, light, or dark)"
+            "未知主题 \"{theme}\"（应为 system、light 或 dark）"
         ));
     }
     let mut settings = load_settings(app)?;
@@ -108,7 +108,7 @@ pub async fn set_theme(app: &AppHandle, theme: &str) -> Result<Settings, String>
 pub async fn set_export_format(app: &AppHandle, export_format: &str) -> Result<Settings, String> {
     if !EXPORT_FORMATS.contains(&export_format) {
         return Err(format!(
-            "unknown export format \"{export_format}\" (expected one of {EXPORT_FORMATS:?})"
+            "未知导出格式 \"{export_format}\"（应为 {EXPORT_FORMATS:?} 之一）"
         ));
     }
     let mut settings = load_settings(app)?;

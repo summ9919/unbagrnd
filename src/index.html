@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>unbagrnd</title>
+    <title>unbagrnd — AI 抠图工具</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -15,17 +15,17 @@
             <span class="brand-name"><span class="brand-name-initial">u</span>nbagrnd</span>
             <span class="brand-version" id="app-version"></span>
           </div>
-          <p class="brand-tagline">AI-powered background removal — 100% on your device.</p>
+          <p class="brand-tagline">AI 智能抠图 — 100% 在本机完成，图片无需上传。</p>
         </div>
-        <button id="settings-btn" class="btn-icon" type="button" aria-label="Settings" title="Settings">⚙</button>
+        <button id="settings-btn" class="btn-icon" type="button" aria-label="设置" title="设置">⚙</button>
       </header>
 
       <section class="model-bar">
         <div class="model-bar-row">
-          <label class="model-bar-label" for="model-select">Model</label>
+          <label class="model-bar-label" for="model-select">模型</label>
           <select id="model-select" class="model-select"></select>
           <span id="model-badge" class="model-badge"></span>
-          <button id="model-download-btn" class="btn btn-primary btn-sm" type="button" hidden>Download</button>
+          <button id="model-download-btn" class="btn btn-primary btn-sm" type="button" hidden>下载</button>
         </div>
         <div id="model-download-progress" class="model-download-progress" hidden>
           <div class="progress-track">
@@ -36,9 +36,9 @@
         <p id="model-desc" class="model-desc"></p>
       </section>
 
-      <nav class="tabs" role="tablist" aria-label="Mode">
-        <button class="tab active" id="tab-single" role="tab" aria-selected="true" type="button">Single</button>
-        <button class="tab" id="tab-batch" role="tab" aria-selected="false" type="button">Batch</button>
+      <nav class="tabs" role="tablist" aria-label="模式">
+        <button class="tab active" id="tab-single" role="tab" aria-selected="true" type="button">单张</button>
+        <button class="tab" id="tab-batch" role="tab" aria-selected="false" type="button">批量</button>
       </nav>
 
       <main>
@@ -46,15 +46,15 @@
           <div id="single-dropzone" class="dropzone">
             <div class="dropzone-inner">
               <span class="dropzone-icon" aria-hidden="true">⬆</span>
-              <p>Drag &amp; drop an image here</p>
-              <p class="dropzone-sub">or</p>
-              <button id="single-pick-btn" class="btn btn-secondary" type="button">Choose an image…</button>
+              <p>将图片拖放到此处</p>
+              <p class="dropzone-sub">或</p>
+              <button id="single-pick-btn" class="btn btn-secondary" type="button">选择图片…</button>
             </div>
           </div>
 
           <div id="single-loading" class="loading-panel" hidden>
             <div class="spinner"></div>
-            <p id="single-loading-text">Preparing…</p>
+            <p id="single-loading-text">准备中…</p>
             <div class="single-loading-progress">
               <div class="progress-track">
                 <div id="single-progress-fill" class="progress-fill" style="width: 0%"></div>
@@ -66,21 +66,21 @@
           <div id="single-result" class="result" hidden>
             <div class="preview-grid">
               <figure class="preview">
-                <figcaption>Before</figcaption>
-                <div class="preview-frame"><img id="preview-before" alt="Original image" /></div>
+                <figcaption>处理前</figcaption>
+                <div class="preview-frame"><img id="preview-before" alt="原图" /></div>
               </figure>
               <figure class="preview">
-                <figcaption>After</figcaption>
-                <div class="preview-frame checkerboard"><img id="preview-after" alt="Background removed" /></div>
+                <figcaption>处理后</figcaption>
+                <div class="preview-frame checkerboard"><img id="preview-after" alt="已移除背景" /></div>
               </figure>
             </div>
             <div class="result-actions">
               <span id="single-output-path" class="output-path"></span>
               <div class="result-buttons">
-                <button id="single-refine-btn" class="btn btn-secondary" type="button">Refine</button>
-                <button id="single-edit-bg-btn" class="btn btn-secondary" type="button">Edit background</button>
-                <button id="single-reveal-btn" class="btn btn-secondary" type="button">Reveal in folder</button>
-                <button id="single-reset-btn" class="btn btn-secondary" type="button">Process another</button>
+                <button id="single-refine-btn" class="btn btn-secondary" type="button">精细化</button>
+                <button id="single-edit-bg-btn" class="btn btn-secondary" type="button">编辑背景</button>
+                <button id="single-reveal-btn" class="btn btn-secondary" type="button">在文件夹中显示</button>
+                <button id="single-reset-btn" class="btn btn-secondary" type="button">处理下一张</button>
               </div>
             </div>
           </div>
@@ -90,11 +90,11 @@
           <div id="batch-dropzone" class="dropzone">
             <div class="dropzone-inner">
               <span class="dropzone-icon" aria-hidden="true">⬆</span>
-              <p>Drag &amp; drop images or a folder here</p>
-              <p class="dropzone-sub">or</p>
+              <p>将图片或文件夹拖放到此处</p>
+              <p class="dropzone-sub">或</p>
               <div class="dropzone-buttons">
-                <button id="batch-pick-files-btn" class="btn btn-secondary" type="button">Choose images…</button>
-                <button id="batch-pick-folder-btn" class="btn btn-secondary" type="button">Choose a folder…</button>
+                <button id="batch-pick-files-btn" class="btn btn-secondary" type="button">选择图片…</button>
+                <button id="batch-pick-folder-btn" class="btn btn-secondary" type="button">选择文件夹…</button>
               </div>
             </div>
           </div>
@@ -108,24 +108,24 @@
             </div>
             <ul id="batch-file-list" class="file-list"></ul>
             <div class="result-actions">
-              <button id="batch-reveal-btn" class="btn btn-secondary" type="button">Reveal output folder</button>
-              <button id="batch-reset-btn" class="btn btn-secondary" type="button">Process another batch</button>
+              <button id="batch-reveal-btn" class="btn btn-secondary" type="button">打开输出文件夹</button>
+              <button id="batch-reset-btn" class="btn btn-secondary" type="button">继续处理下一批</button>
             </div>
           </div>
         </section>
       </main>
 
       <section class="output-settings">
-        <label class="output-settings-label" for="output-dir-display">Save to</label>
+        <label class="output-settings-label" for="output-dir-display">保存到</label>
         <div class="output-settings-row">
-          <span id="output-dir-display" class="output-dir-display">Same folder as the original image</span>
-          <button id="choose-output-dir-btn" class="btn btn-link" type="button">Change…</button>
-          <button id="clear-output-dir-btn" class="btn btn-link" type="button" hidden>Reset to default</button>
+          <span id="output-dir-display" class="output-dir-display">与原图相同的文件夹</span>
+          <button id="choose-output-dir-btn" class="btn btn-link" type="button">更改…</button>
+          <button id="clear-output-dir-btn" class="btn btn-link" type="button" hidden>恢复默认</button>
         </div>
       </section>
 
       <footer class="app-footer">
-        <span id="status-line">Ready.</span>
+        <span id="status-line">就绪。</span>
         <span id="resource-usage" class="resource-usage"></span>
       </footer>
     </div>
@@ -133,12 +133,12 @@
     <div id="refine-editor-overlay" class="bg-editor-overlay" hidden>
       <div class="bg-editor">
         <div class="bg-editor-topbar">
-          <button id="refine-done-btn" class="btn btn-secondary" type="button">Done</button>
+          <button id="refine-done-btn" class="btn btn-secondary" type="button">完成</button>
           <div class="bg-editor-topbar-center">
-            <button id="refine-undo-btn" class="btn-icon" type="button" title="Undo" disabled>↶</button>
-            <button id="refine-redo-btn" class="btn-icon" type="button" title="Redo" disabled>↷</button>
+            <button id="refine-undo-btn" class="btn-icon" type="button" title="撤销" disabled>↶</button>
+            <button id="refine-redo-btn" class="btn-icon" type="button" title="重做" disabled>↷</button>
           </div>
-          <button id="refine-download-btn" class="btn btn-primary" type="button">Download</button>
+          <button id="refine-download-btn" class="btn btn-primary" type="button">下载</button>
         </div>
         <div class="bg-editor-body">
           <div class="bg-editor-canvas-wrap">
@@ -150,20 +150,20 @@
             </div>
           </div>
           <aside class="bg-editor-sidebar">
-            <h3>Refine</h3>
+            <h3>精细化</h3>
             <div class="swatch-group">
-              <span class="swatch-group-label">Mode</span>
+              <span class="swatch-group-label">模式</span>
               <div class="refine-mode-row" id="refine-mode-row">
-                <button type="button" class="bg-shadow-preset active" data-mode="erase">Erase</button>
-                <button type="button" class="bg-shadow-preset" data-mode="restore">Restore</button>
+                <button type="button" class="bg-shadow-preset active" data-mode="erase">擦除</button>
+                <button type="button" class="bg-shadow-preset" data-mode="restore">恢复</button>
               </div>
             </div>
             <p class="bg-editor-hint" id="refine-mode-hint">
-              Paint over parts of the subject you want to remove.
+              涂抹想要移除的主体部分。
             </p>
 
             <label class="bg-shadow-opacity">
-              Brush size
+              笔刷大小
               <input type="range" id="refine-brush-size" min="1" max="40" value="10" />
               <span id="refine-brush-size-label">10%</span>
             </label>
@@ -171,23 +171,23 @@
             <div class="bg-editor-divider"></div>
 
             <div class="swatch-group" id="refine-restore-to-group" hidden>
-              <span class="swatch-group-label">Restore to</span>
+              <span class="swatch-group-label">恢复到</span>
               <div class="refine-restore-row" id="refine-restore-row">
                 <button type="button" class="refine-restore-btn active" data-restore-to="original">
                   <img id="refine-restore-original-thumb" alt="" />
-                  <span>Original</span>
+                  <span>原图</span>
                 </button>
                 <button type="button" class="refine-restore-btn" data-restore-to="start">
                   <img id="refine-restore-start-thumb" alt="" />
-                  <span>Start</span>
+                  <span>初始结果</span>
                 </button>
               </div>
               <div class="bg-editor-divider"></div>
             </div>
 
             <div class="refine-actions">
-              <button id="refine-clear-btn" class="btn btn-link" type="button">Clear</button>
-              <button id="refine-apply-btn" class="btn btn-secondary" type="button">Apply</button>
+              <button id="refine-clear-btn" class="btn btn-link" type="button">清除</button>
+              <button id="refine-apply-btn" class="btn btn-secondary" type="button">应用</button>
             </div>
           </aside>
         </div>
@@ -197,68 +197,67 @@
     <div id="background-editor-overlay" class="bg-editor-overlay" hidden>
       <div class="bg-editor">
         <div class="bg-editor-topbar">
-          <button id="bg-editor-done-btn" class="btn btn-secondary" type="button">Done</button>
-          <button id="bg-editor-download-btn" class="btn btn-primary" type="button">Download</button>
+          <button id="bg-editor-done-btn" class="btn btn-secondary" type="button">完成</button>
+          <button id="bg-editor-download-btn" class="btn btn-primary" type="button">下载</button>
         </div>
         <div class="bg-editor-body">
           <div class="bg-editor-canvas-wrap">
             <div class="bg-editor-canvas checkerboard">
-              <img id="bg-editor-preview" alt="Background preview" />
+              <img id="bg-editor-preview" alt="背景预览" />
               <div id="bg-editor-loading" class="bg-editor-loading" hidden>
                 <span class="spinner"></span>
               </div>
             </div>
           </div>
           <aside class="bg-editor-sidebar">
-            <h3>Background</h3>
+            <h3>背景</h3>
             <div class="swatch-group">
-              <span class="swatch-group-label">Basic colors</span>
+              <span class="swatch-group-label">基础颜色</span>
               <div class="swatch-row" id="bg-swatches-basic"></div>
             </div>
             <div class="swatch-group">
-              <span class="swatch-group-label">Pastels</span>
+              <span class="swatch-group-label">浅色</span>
               <div class="swatch-row" id="bg-swatches-pastel"></div>
             </div>
             <div class="swatch-group">
-              <span class="swatch-group-label">Neutrals</span>
+              <span class="swatch-group-label">中性色</span>
               <div class="swatch-row" id="bg-swatches-neutral"></div>
             </div>
             <div class="swatch-group" id="bg-swatches-image-group" hidden>
-              <span class="swatch-group-label">From your image</span>
+              <span class="swatch-group-label">取自图片</span>
               <div class="swatch-row" id="bg-swatches-image"></div>
             </div>
 
             <div class="bg-editor-divider"></div>
 
-            <h3>Shadow</h3>
+            <h3>阴影</h3>
             <p class="bg-editor-hint">
-              Adds a soft drop shadow beneath your subject, computed
-              on-device from its outline — no AI, no network.
+              根据主体轮廓在本机计算并添加柔和投影 — 无需 AI，无需联网。
             </p>
             <label class="bg-shadow-toggle">
               <input type="checkbox" id="bg-shadow-enable" />
-              Enable drop shadow
+              启用投影
             </label>
             <div id="bg-shadow-controls" class="bg-shadow-controls" hidden>
               <div class="bg-shadow-presets" id="bg-shadow-presets">
-                <button type="button" class="bg-shadow-preset active" data-preset="natural">Natural</button>
-                <button type="button" class="bg-shadow-preset" data-preset="overhead">Overhead</button>
-                <button type="button" class="bg-shadow-preset" data-preset="left">Left</button>
-                <button type="button" class="bg-shadow-preset" data-preset="right">Right</button>
-                <button type="button" class="bg-shadow-preset" data-preset="custom">Custom</button>
+                <button type="button" class="bg-shadow-preset active" data-preset="natural">自然</button>
+                <button type="button" class="bg-shadow-preset" data-preset="overhead">顶部</button>
+                <button type="button" class="bg-shadow-preset" data-preset="left">左侧</button>
+                <button type="button" class="bg-shadow-preset" data-preset="right">右侧</button>
+                <button type="button" class="bg-shadow-preset" data-preset="custom">自定义</button>
               </div>
               <div id="bg-shadow-custom-controls" class="bg-shadow-custom" hidden>
                 <label>
-                  Angle
+                  角度
                   <input type="range" id="bg-shadow-angle" min="0" max="359" value="0" />
                 </label>
                 <label>
-                  Distance
+                  距离
                   <input type="range" id="bg-shadow-distance" min="0" max="30" value="8" />
                 </label>
               </div>
               <label class="bg-shadow-opacity">
-                Opacity
+                不透明度
                 <input type="range" id="bg-shadow-opacity" min="0" max="100" value="50" />
                 <span id="bg-shadow-opacity-label">50%</span>
               </label>
@@ -271,26 +270,26 @@
     <div id="settings-overlay" class="settings-overlay" hidden>
       <div class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <div class="settings-header">
-          <h2 id="settings-title">Settings</h2>
-          <button id="settings-close-btn" class="btn-icon" type="button" aria-label="Close settings">✕</button>
+          <h2 id="settings-title">设置</h2>
+          <button id="settings-close-btn" class="btn-icon" type="button" aria-label="关闭设置">✕</button>
         </div>
         <div class="settings-body">
           <section class="settings-section">
-            <h3>Appearance</h3>
+            <h3>外观</h3>
             <div class="settings-row">
-              <span>Theme</span>
+              <span>主题</span>
               <select id="theme-select">
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="system">跟随系统</option>
+                <option value="light">浅色</option>
+                <option value="dark">深色</option>
               </select>
             </div>
           </section>
 
           <section class="settings-section">
-            <h3>Export</h3>
+            <h3>导出</h3>
             <div class="settings-row">
-              <span>Save output as</span>
+              <span>输出格式</span>
               <select id="export-format-select">
                 <option value="png">PNG</option>
                 <option value="webp">WebP</option>
@@ -298,15 +297,14 @@
               </select>
             </div>
             <p class="settings-hint">
-              WebP is a smaller lossless file with the same transparency as
-              PNG. SVG wraps the result as a scalable, vector-embedded image.
+              WebP 为无损格式，文件体积比 PNG 更小，透明效果相同。SVG 会将结果封装为可缩放的矢量内嵌图像。
             </p>
           </section>
 
           <section class="settings-section">
-            <h3>Models</h3>
+            <h3>模型</h3>
             <ul id="settings-model-list" class="settings-model-list"></ul>
-            <button id="clear-all-models-btn" class="btn btn-link" type="button">Clear all cached models</button>
+            <button id="clear-all-models-btn" class="btn btn-link" type="button">清除全部已缓存模型</button>
           </section>
         </div>
       </div>

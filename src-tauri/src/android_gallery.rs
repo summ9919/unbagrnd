@@ -92,7 +92,7 @@ pub fn publish<R: Runtime>(
     *app.state::<LastGalleryUri>()
         .0
         .lock()
-        .map_err(|_| "gallery state lock poisoned".to_string())? = Some(response.uri);
+        .map_err(|_| "相册状态锁已失效".to_string())? = Some(response.uri);
     Ok(())
 }
 
@@ -103,9 +103,9 @@ pub fn open_last_in_gallery<R: Runtime>(app: &AppHandle<R>) -> Result<(), String
         .state::<LastGalleryUri>()
         .0
         .lock()
-        .map_err(|_| "gallery state lock poisoned".to_string())?
+        .map_err(|_| "相册状态锁已失效".to_string())?
         .clone()
-        .ok_or_else(|| "no exported image to open yet".to_string())?;
+        .ok_or_else(|| "暂无可打开的已导出图片".to_string())?;
 
     let handle = app.state::<GalleryHandle<R>>();
     handle

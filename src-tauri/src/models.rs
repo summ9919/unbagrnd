@@ -15,7 +15,7 @@ pub use unbagrnd_core::models::{ModelInfo, ModelSpec};
 fn models_dir(app: &AppHandle) -> Result<PathBuf, String> {
     app.path()
         .app_data_dir()
-        .map_err(|e| format!("could not resolve the app data directory: {e}"))
+        .map_err(|e| format!("无法确定应用数据目录：{e}"))
         .map(|dir| dir.join("models"))
 }
 
